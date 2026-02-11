@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker 日志监控系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-box-seam"></i> Docker 日志监控
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard" data-page="dashboard">
+                            <i class="bi bi-speedometer2"></i> 仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#errors" data-page="errors">
+                            <i class="bi bi-exclamation-triangle"></i> 错误日志
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#containers" data-page="containers">
+                            <i class="bi bi-box"></i> 容器管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#config" data-page="config">
+                            <i class="bi bi-gear"></i> 配置管理
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container-fluid mt-4">
+        <!-- 仪表盘页面 -->
+        <div id="dashboard-page" class="page-content">
+            <h2 class="mb-4"><i class="bi bi-speedometer2"></i> 监控仪表盘</h2>
+            
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">总错误数</h6>
+                                    <h2 class="card-title" id="total-errors">-</h2>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">今日错误</h6>
+                                    <h2 class="card-title" id="today-errors">-</h2>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="bi bi-calendar-day"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">未解决</h6>
+                                    <h2 class="card-title" id="unresolved-errors">-</h2>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">严重错误</h6>
+                                    <h2 class="card-title" id="critical-errors">-</h2>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="bi bi-shield-exclamation"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-graph-up"></i> 错误趋势（最近7天）</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-pie-chart"></i> 错误类型分布</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 最近错误 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-list-ul"></i> 最近错误</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="recent-errors" class="table-responsive">
+                                <p class="text-muted">加载中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 错误日志页面 -->
+        <div id="errors-page" class="page-content" style="display: none;">
+            <h2 class="mb-4"><i class="bi bi-exclamation-triangle"></i> 错误日志</h2>
+            
+            <!-- 过滤器 -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="search-input" placeholder="搜索错误...">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="status-filter">
+                                <option value="">所有状态</option>
+                                <option value="new">新错误</option>
+                                <option value="investigating">调查中</option>
+                                <option value="resolved">已解决</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="severity-filter">
+                                <option value="">所有严重度</option>
+                                <option value="critical">严重</option>
+                                <option value="error">错误</option>
+                                <option value="warning">警告</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="container-filter">
+                                <option value="">所有容器</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" id="apply-filters">
+                                <i class="bi bi-funnel"></i> 应用过滤
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 错误列表 -->
+            <div class="card">
+                <div class="card-body">
+                    <div id="errors-list"></div>
+                    <nav id="pagination-container"></nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- 容器管理页面 -->
+        <div id="containers-page" class="page-content" style="display: none;">
+            <h2 class="mb-4"><i class="bi bi-box"></i> 容器管理</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div id="containers-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置管理页面 -->
+        <div id="config-page" class="page-content" style="display: none;">
+            <h2 class="mb-4"><i class="bi bi-gear"></i> 配置管理</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 修改配置后需要重启监控服务才能生效
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">配置内容 (YAML)</label>
+                        <textarea class="form-control font-monospace" id="config-editor" rows="20"></textarea>
+                    </div>
+                    <button class="btn btn-primary" id="save-config">
+                        <i class="bi bi-save"></i> 保存配置
+                    </button>
+                    <button class="btn btn-secondary" id="reload-config">
+                        <i class="bi bi-arrow-clockwise"></i> 重新加载
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误详情弹窗 -->
+    <div class="modal fade" id="errorDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">错误详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="error-detail-content">
+                    <!-- 内容由JS动态填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

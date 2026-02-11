@@ -8,9 +8,15 @@
 - **智能错误检测**: 基于关键词自动识别错误日志
 - **AI 错误分析**: 使用 Azure OpenAI 分析错误原因并提供解决建议
 - **飞书消息通知**: 自动将错误日志和分析结果发送到飞书群聊
+- **Web 管理界面**: 功能丰富的可视化管理界面
+  - 📊 实时监控仪表盘 - 错误统计、趋势图表
+  - 📝 错误日志管理 - 查看、搜索、过滤错误记录
+  - 🐳 容器监控 - 查看容器状态和日志
+  - ⚙️ 在线配置管理 - 无需重启即可修改配置
 - **错误去重**: 避免重复发送相同的错误通知
 - **频率限制**: 防止消息轰炸，控制通知频率
 - **多容器支持**: 同时监控多个容器
+- **数据持久化**: SQLite 数据库存储所有错误记录
 
 ## 项目结构
 
@@ -20,13 +26,39 @@ docker-log-monitor/
 │   ├── config.yaml          # 主配置文件
 │   └── .env.example         # 环境变量示例
 ├── logs/                    # 日志文件目录
+├── templates/               # Web 界面 HTML 模板
+│   └── dashboard.html       # 仪表盘页面
+├── static/                  # 静态资源
+│   ├── css/
+│   │   └── style.css        # 样式文件
+│   └── js/
+│       └── app.js           # 前端脚本
 ├── main.py                  # 主程序入口
 ├── docker_monitor.py        # Docker 日志监控模块
 ├── error_analyzer.py        # AI 错误分析模块
 ├── feishu_notifier.py       # 飞书消息发送模块
+├── web_app.py               # Web 管理界面应用
+├── start_web.sh             # Web 界面启动脚本
 ├── requirements.txt         # Python 依赖
+├── docker-compose.yml       # Docker Compose 配置
 └── README.md               # 项目文档
 ```
+
+## 快速开始
+
+### 演示模式（快速体验 Web 界面）
+
+如果你想快速体验 Web 管理界面，可以使用演示模式：
+
+```bash
+# 一键启动演示（会生成测试数据）
+chmod +x demo.sh
+./demo.sh
+```
+
+然后访问 http://localhost:5000 查看界面效果。
+
+### 生产环境部署
 
 ## 安装步骤
 
@@ -90,7 +122,7 @@ cp config/.env.example config/.env
 
 ## 使用方法
 
-### 启动监控
+### 方式 1: 启动监控程序（命令行）
 
 ```bash
 python main.py
@@ -101,6 +133,72 @@ python main.py
 ```bash
 nohup python main.py > output.log 2>&1 &
 ```
+
+### 方式 2: 启动 Web 管理界面（推荐）
+
+#### 快速启动
+
+```bash
+# 使用启动脚本
+chmod +x start_web.sh
+./start_web.sh
+```
+
+或者手动启动：
+
+```bash
+# 安装依赖
+pip install -r requirements.txt
+
+# 启动 Web 应用
+python web_app.py
+```
+
+#### 访问界面
+
+打开浏览器访问：`http://localhost:5000`
+
+#### Web 界面功能
+
+1. **仪表盘**: 
+   - 实时错误统计（总数、今日、未解决、严重错误）
+   - 7天错误趋势图
+   - 错误类型分布饼图
+   - 最近错误列表
+
+2. **错误日志**:
+   - 查看所有错误记录
+   - 按容器、状态、严重度过滤
+   - 搜索错误内容
+   - 查看详细的 AI 分析和解决方案
+   - 更新错误处理状态（新错误/调查中/已解决）
+
+3. **容器管理**:
+   - 查看所有 Docker 容器状态
+   - 实时查看容器日志
+   - 容器健康状况监控
+
+4. **配置管理**:
+   - 在线编辑 config.yaml
+   - 无需重启即可更新配置
+   - 配置验证和错误提示
+
+### 方式 3: 使用 Docker Compose（生产环境推荐）
+
+```bash
+# 同时启动监控程序和 Web 界面
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+Docker Compose 会启动两个服务：
+- `log-monitor`: 后台监控程序
+- `web-dashboard`: Web 管理界面（端口 5000）
 
 ### 停止监控
 

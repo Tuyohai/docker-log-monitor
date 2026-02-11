@@ -11,6 +11,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config:/app/config:ro
       - ./logs:/app/logs
+      - ./logs.db:/app/logs.db
 
     # 网络模式（可选）
     network_mode: bridge
@@ -22,6 +23,34 @@ services:
     #   - AZURE_OPENAI_DEPLOYMENT=gpt-4
     #   - FEISHU_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/your-token
     #   - LOG_LEVEL=INFO
+
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Web 管理界面
+  web-dashboard:
+    build: .
+    container_name: docker-log-monitor-web
+    restart: unless-stopped
+    command: python web_app.py
+
+    # 挂载必要的文件
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./logs.db:/app/logs.db
+
+    # 端口映射
+    ports:
+      - "5000:5000"
+
+    # 网络模式
+    network_mode: bridge
 
     # 日志配置
     logging:

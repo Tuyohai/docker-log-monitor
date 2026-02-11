@@ -17,6 +17,15 @@ from docker_monitor import DockerLogMonitor
 from error_analyzer import ErrorAnalyzer
 from feishu_notifier import FeishuNotifier
 
+# 尝试导入 web_app 的错误日志记录功能
+try:
+    from web_app import add_error_log
+    WEB_APP_AVAILABLE = True
+except ImportError:
+    WEB_APP_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("web_app 模块不可用，错误日志不会记录到数据库")
+
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
@@ -157,6 +166,46 @@ class LogMonitorApp:
             container_image=container_image
         )
 
+        # 提取分析结果和解决方案
+        ai_analysis = None
+        ai_solution = None
+        if analysis:
+            # 尝试从分析结果中提取说明和建议
+            lines = analysis.split('\n')
+            analysis_part = []
+            solution_part = []
+            in_solution = False
+            
+            for line in lines:
+                if '建议' in line or '解决' in line or 'solution' in line.lower():
+                    in_solution = True
+                if in_solution:
+                    solution_part.append(line)
+                else:
+                    analysis_part.append(line)
+            
+            ai_analysis = '\n'.join(analysis_part).strip() or analysis
+            ai_solution = '\n'.join(solution_part).strip() if solution_part else None
+
+        # 判断错误严重度
+        severity = self.determine_severity(log_line)
+        
+        # 记录到数据库（如果web_app可用）
+        if WEB_APP_AVAILABLE:
+            try:
+                add_error_log(
+                    container_name=container_name,
+                    error_message=log_line[:500],  # 限制长度
+                    error_type=self.extract_error_type(log_line),
+                    log_content=log_line,
+                    severity=severity,
+                    ai_analysis=ai_analysis,
+                    ai_solution=ai_solution
+                )
+                logger.debug("错误已记录到数据库")
+            except Exception as e:
+                logger.error(f"记录错误到数据库失败: {e}")
+
         # 发送飞书通知
         success = self.feishu_notifier.send_error_notification(
             container_name=container_name,
@@ -247,6 +296,75 @@ class LogMonitorApp:
 
         self.rate_limit_counter[container_name] += 1
         return True
+
+    def determine_severity(self, log_line: str) -> str:
+        """
+        判断错误的严重程度
+
+        Args:
+            log_line: 日志行
+
+        Returns:
+            严重度: critical, error, warning
+        """
+        log_lower = log_line.lower()
+        
+        # 严重错误关键词
+        critical_keywords = ['fatal', 'critical', 'panic', 'segmentation fault', 
+                           'out of memory', 'oom', 'core dumped']
+        for keyword in critical_keywords:
+            if keyword in log_lower:
+                return 'critical'
+        
+        # 错误关键词
+        error_keywords = ['error', 'exception', 'failed', 'failure', 'crash']
+        for keyword in error_keywords:
+            if keyword in log_lower:
+                return 'error'
+        
+        # 默认为警告
+        return 'warning'
+
+    def extract_error_type(self, log_line: str) -> str:
+        """
+        从日志中提取错误类型
+
+        Args:
+            log_line: 日志行
+
+        Returns:
+            错误类型
+        """
+        # 尝试提取常见的错误类型
+        import re
+        
+        # Java 异常
+        java_match = re.search(r'(\w+Exception|\w+Error):', log_line)
+        if java_match:
+            return java_match.group(1)
+        
+        # Python 异常
+        python_match = re.search(r'(\w+Error|\w+Exception)', log_line)
+        if python_match:
+            return python_match.group(1)
+        
+        # HTTP 错误
+        http_match = re.search(r'HTTP\s+(\d{3})', log_line, re.IGNORECASE)
+        if http_match:
+            return f'HTTP {http_match.group(1)}'
+        
+        # 通用错误标记
+        if 'timeout' in log_line.lower():
+            return 'Timeout'
+        elif 'connection' in log_line.lower() and ('refused' in log_line.lower() or 'failed' in log_line.lower()):
+            return 'Connection Error'
+        elif 'permission denied' in log_line.lower():
+            return 'Permission Error'
+        elif 'not found' in log_line.lower():
+            return 'Not Found'
+        
+        # 默认
+        return 'Unknown Error'
 
     def start(self):
         """启动监控应用"""
