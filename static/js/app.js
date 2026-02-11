@@ -3,19 +3,47 @@ let trendChart = null;
 let typeChart = null;
 let currentPage = 1;
 
+// 隐藏页面加载动画
+function hidePageLoader() {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 500);
+    }
+}
+
+// 超时保护：5秒后强制显示页面
+setTimeout(function() {
+    hidePageLoader();
+}, 5000);
+
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
+    // 隐藏加载动画
+    hidePageLoader();
+    
     // 导航切换
     setupNavigation();
     
-    // 加载仪表盘数据
-    loadDashboard();
+    // 默认加载错误日志页面
+    loadErrors();
+    // 设置错误日志导航为激活状态
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelector('[data-page="errors"]').classList.add('active');
     
-    // 设置定时刷新
-    setInterval(loadDashboard, 30000); // 每30秒刷新
+    // 设置定时刷新错误日志
+    setInterval(loadErrors, 30000); // 每30秒刷新
     
     // 设置事件监听器
     setupEventListeners();
+});
+
+// 确保页面完全加载后隐藏加载动画
+window.addEventListener('load', function() {
+    hidePageLoader();
 });
 
 // 导航切换
