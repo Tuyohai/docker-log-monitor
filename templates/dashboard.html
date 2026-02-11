@@ -3,41 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker 日志监控系统</title>
+    <title>Docker 日志监控系统 | 专业监控面板</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
     <link href="/static/css/style.css" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐳</text></svg>">
 </head>
 <body>
     <!-- 导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-box-seam"></i> Docker 日志监控
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="bi bi-box-seam me-2" style="font-size: 1.8rem;"></i> 
+                <span>Docker 日志监控</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link active" href="#dashboard" data-page="dashboard">
-                            <i class="bi bi-speedometer2"></i> 仪表盘
+                            <i class="bi bi-speedometer2 me-1"></i> 仪表盘
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#errors" data-page="errors">
-                            <i class="bi bi-exclamation-triangle"></i> 错误日志
+                            <i class="bi bi-exclamation-triangle me-1"></i> 错误日志
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#containers" data-page="containers">
-                            <i class="bi bi-box"></i> 容器管理
+                            <i class="bi bi-box me-1"></i> 容器管理
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#config" data-page="config">
-                            <i class="bi bi-gear"></i> 配置管理
+                            <i class="bi bi-gear me-1"></i> 配置管理
                         </a>
                     </li>
                 </ul>
@@ -49,17 +64,26 @@
     <div class="container-fluid mt-4">
         <!-- 仪表盘页面 -->
         <div id="dashboard-page" class="page-content">
-            <h2 class="mb-4"><i class="bi bi-speedometer2"></i> 监控仪表盘</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-white">
+                    <i class="bi bi-speedometer2"></i> 监控仪表盘
+                </h2>
+                <div class="text-white-50">
+                    <i class="bi bi-arrow-clockwise me-1"></i> 
+                    <small>每30秒自动刷新</small>
+                </div>
+            </div>
             
             <!-- 统计卡片 -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card stat-card bg-primary text-white">
+            <div class="row mb-4 g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card bg-primary text-white slide-in">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="card-subtitle mb-2">总错误数</h6>
-                                    <h2 class="card-title" id="total-errors">-</h2>
+                                    <h6 class="card-subtitle mb-2 opacity-75">总错误数</h6>
+                                    <h2 class="card-title mb-0 fw-bold" id="total-errors">-</h2>
+                                    <small class="opacity-75">累计记录</small>
                                 </div>
                                 <div class="stat-icon">
                                     <i class="bi bi-exclamation-circle"></i>
@@ -68,13 +92,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card bg-warning text-white">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card bg-warning text-white slide-in" style="animation-delay: 0.1s;">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="card-subtitle mb-2">今日错误</h6>
-                                    <h2 class="card-title" id="today-errors">-</h2>
+                                    <h6 class="card-subtitle mb-2 opacity-75">今日错误</h6>
+                                    <h2 class="card-title mb-0 fw-bold" id="today-errors">-</h2>
+                                    <small class="opacity-75">过去24小时</small>
                                 </div>
                                 <div class="stat-icon">
                                     <i class="bi bi-calendar-day"></i>
@@ -83,13 +108,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card bg-danger text-white">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card bg-danger text-white slide-in" style="animation-delay: 0.2s;">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="card-subtitle mb-2">未解决</h6>
-                                    <h2 class="card-title" id="unresolved-errors">-</h2>
+                                    <h6 class="card-subtitle mb-2 opacity-75">未解决</h6>
+                                    <h2 class="card-title mb-0 fw-bold" id="unresolved-errors">-</h2>
+                                    <small class="opacity-75">需要处理</small>
                                 </div>
                                 <div class="stat-icon">
                                     <i class="bi bi-hourglass-split"></i>
@@ -98,13 +124,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card bg-success text-white">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card bg-success text-white slide-in" style="animation-delay: 0.3s;">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="card-subtitle mb-2">严重错误</h6>
-                                    <h2 class="card-title" id="critical-errors">-</h2>
+                                    <h6 class="card-subtitle mb-2 opacity-75">严重错误</h6>
+                                    <h2 class="card-title mb-0 fw-bold" id="critical-errors">-</h2>
+                                    <small class="opacity-75">高优先级</small>
                                 </div>
                                 <div class="stat-icon">
                                     <i class="bi bi-shield-exclamation"></i>
