@@ -36,6 +36,12 @@ ENV/
 logs/
 *.log
 
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
 # 环境变量
 .env
 config/.env

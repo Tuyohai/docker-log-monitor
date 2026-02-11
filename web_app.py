@@ -242,4 +242,18 @@ def add_error_log(container_name, error_message, error_type=None,
     return error.id
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    import argparse
+    
+    # 命令行参数解析
+    parser = argparse.ArgumentParser(description='Docker 日志监控 Web 界面')
+    parser.add_argument('--port', '-p', type=int, default=5000, help='Web 服务端口 (默认: 5000)')
+    parser.add_argument('--host', type=str, default='0.0.0.0', help='监听地址 (默认: 0.0.0.0)')
+    parser.add_argument('--debug', action='store_true', help='启用调试模式')
+    args = parser.parse_args()
+    
+    print(f"🚀 启动 Web 界面...")
+    print(f"📍 访问地址: http://localhost:{args.port}")
+    print(f"🔧 调试模式: {'开启' if args.debug else '关闭'}")
+    print(f"按 Ctrl+C 停止服务\n")
+    
+    app.run(host=args.host, port=args.port, debug=args.debug)

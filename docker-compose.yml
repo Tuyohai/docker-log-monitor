@@ -36,7 +36,7 @@ services:
     build: .
     container_name: docker-log-monitor-web
     restart: unless-stopped
-    command: python web_app.py
+    command: python web_app.py --port ${WEB_PORT:-5000}
 
     # 挂载必要的文件
     volumes:
@@ -45,9 +45,13 @@ services:
       - ./logs:/app/logs
       - ./logs.db:/app/logs.db
 
-    # 端口映射
+    # 端口映射（可通过环境变量 WEB_PORT 配置）
     ports:
-      - "5000:5000"
+      - "${WEB_PORT:-5000}:${WEB_PORT:-5000}"
+
+    # 环境变量
+    environment:
+      - WEB_PORT=${WEB_PORT:-5000}
 
     # 网络模式
     network_mode: bridge

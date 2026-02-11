@@ -51,12 +51,15 @@ docker-log-monitor/
 如果你想快速体验 Web 管理界面，可以使用演示模式：
 
 ```bash
-# 一键启动演示（会生成测试数据）
+# 一键启动演示（会生成测试数据，默认端口 5000）
 chmod +x demo.sh
 ./demo.sh
+
+# 或者指定端口启动
+./demo.sh 8080
 ```
 
-然后访问 http://localhost:5000 查看界面效果。
+然后访问 http://localhost:5000（或您指定的端口）查看界面效果。
 
 ### 生产环境部署
 
@@ -139,9 +142,15 @@ nohup python main.py > output.log 2>&1 &
 #### 快速启动
 
 ```bash
-# 使用启动脚本
+# 使用默认端口 5000
 chmod +x start_web.sh
 ./start_web.sh
+
+# 或者指定端口号
+./start_web.sh 8080
+
+# 启用调试模式
+./start_web.sh 8080 debug
 ```
 
 或者手动启动：
@@ -150,13 +159,30 @@ chmod +x start_web.sh
 # 安装依赖
 pip install -r requirements.txt
 
-# 启动 Web 应用
+# 启动 Web 应用（默认端口 5000）
 python web_app.py
+
+# 指定端口启动
+python web_app.py --port 8080
+
+# 查看所有选项
+python web_app.py --help
+```
+
+#### 命令行参数
+
+```bash
+python web_app.py [选项]
+
+选项:
+  --port, -p PORT    Web 服务端口（默认: 5000）
+  --host HOST        监听地址（默认: 0.0.0.0）
+  --debug            启用调试模式
 ```
 
 #### 访问界面
 
-打开浏览器访问：`http://localhost:5000`
+打开浏览器访问：`http://localhost:5000`（或您指定的端口）
 
 #### Web 界面功能
 
@@ -186,7 +212,15 @@ python web_app.py
 ### 方式 3: 使用 Docker Compose（生产环境推荐）
 
 ```bash
-# 同时启动监控程序和 Web 界面
+# 使用默认端口（5000）启动
+docker-compose up -d
+
+# 自定义端口启动
+WEB_PORT=8080 docker-compose up -d
+
+# 或者创建 .env 文件
+cp .env.example .env
+# 编辑 .env 文件设置 WEB_PORT=8080
 docker-compose up -d
 
 # 查看日志
@@ -198,7 +232,7 @@ docker-compose down
 
 Docker Compose 会启动两个服务：
 - `log-monitor`: 后台监控程序
-- `web-dashboard`: Web 管理界面（端口 5000）
+- `web-dashboard`: Web 管理界面（端口可通过 WEB_PORT 环境变量配置）
 
 ### 停止监控
 
