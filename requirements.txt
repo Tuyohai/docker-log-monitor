@@ -1,0 +1,13 @@
+# Docker 日志监控系统依赖包
+
+# Docker SDK
+docker>=7.0.0
+
+# Azure OpenAI
+openai>=1.12.0
+
+# YAML 配置解析
+PyYAML>=6.0.1
+
+# HTTP 请求
+requests>=2.31.0

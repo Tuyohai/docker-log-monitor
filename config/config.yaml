@@ -1,0 +1,55 @@
+# Docker 日志监控配置文件
+
+# Docker 设置
+docker:
+  # 要监控的容器列表（容器名称或 ID）
+  containers:
+    - "your-container-name-1"
+    - "your-container-name-2"
+
+  # 日志监控设置
+  log_settings:
+    # 是否从最新日志开始监控（false 则从历史日志开始）
+    tail: "latest"
+    # 是否跟随日志流
+    follow: true
+    # 是否包含时间戳
+    timestamps: true
+
+# Azure OpenAI 配置
+azure_openai:
+  # Azure OpenAI 端点
+  endpoint: "https://your-resource.openai.azure.com/"
+  # API 密钥
+  api_key: "your-azure-openai-api-key"
+  # 部署名称（模型部署名）
+  deployment_name: "gpt-4"
+  # API 版本
+  api_version: "2024-02-15-preview"
+
+# 飞书配置
+feishu:
+  # 飞书群机器人 Webhook URL
+  webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-token"
+
+# 错误检测配置
+error_detection:
+  # 错误关键词（包含这些关键词的日志将被视为错误）
+  keywords:
+    - "error"
+    - "exception"
+    - "fatal"
+    - "fail"
+    - "panic"
+    - "traceback"
+  # 关键词匹配是否区分大小写
+  case_sensitive: false
+  # 错误上下文行数（发送错误前后多少行日志）
+  context_lines: 5
+
+# 通知设置
+notification:
+  # 错误去重时间窗口（秒），相同错误在此时间内只通知一次
+  dedup_window: 300
+  # 最大通知频率（每分钟最多发送多少条消息）
+  max_rate_per_minute: 10

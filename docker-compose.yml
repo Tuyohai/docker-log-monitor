@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  log-monitor:
+    build: .
+    container_name: docker-log-monitor
+    restart: unless-stopped
+
+    # 挂载 Docker socket 以访问宿主机 Docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+
+    # 网络模式（可选）
+    network_mode: bridge
+
+    # 环境变量（可选，如果不使用 config.yaml）
+    # environment:
+    #   - AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+    #   - AZURE_OPENAI_API_KEY=your-api-key
+    #   - AZURE_OPENAI_DEPLOYMENT=gpt-4
+    #   - FEISHU_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/your-token
+    #   - LOG_LEVEL=INFO
+
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
